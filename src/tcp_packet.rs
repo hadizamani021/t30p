@@ -18,16 +18,20 @@ impl<'a> TCPPacket<'a> {
                 message: "this is not an IPV4 packet.",
             });
         }
-        if !Self::is_tcp_packet(packet_bytes) {
+
+        let ipv4_header_slice = etherparse::Ipv4HeaderSlice::from_slice(payload_bytes).unwrap();
+        if !Self::is_tcp_packet(ipv4_header_slice) {
             return Err(NotSupportedPacketError {
                 message: "this is not an tcp packet.",
             });
         }
-        let ipv4_header_slice = etherparse::Ipv4HeaderSlice::from_slice(payload_bytes).unwrap();
-        let tcp_header_slice = etherparse::TcpHeaderSlice::from_slice(payload_bytes).unwrap();
+
         return Ok(Self {
             ipv4_header_slice,
-            tcp_header_slice,
+            tcp_header_slice: etherparse::TcpHeaderSlice::from_slice(
+                &payload_bytes[ipv4_header_slice.slice().len()..],
+            )
+            .unwrap(),
         });
     }
     pub fn source_address(&self) -> Ipv4Addr {
@@ -49,10 +53,7 @@ impl<'a> TCPPacket<'a> {
         }
         true
     }
-    fn is_tcp_packet(packet_bytes: &[u8]) -> bool {
-        if let Ok(header) = etherparse::Ipv4HeaderSlice::from_slice(packet_bytes) {
-            return header.protocol() == etherparse::IpNumber(0x06);
-        }
-        false
+    fn is_tcp_packet(header: Ipv4HeaderSlice) -> bool {
+        return header.protocol() == etherparse::IpNumber(6);
     }
 }
