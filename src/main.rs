@@ -12,10 +12,10 @@ fn main() {
             Ok(packet) => {
                 println!(
                     "packet from {}:{} -> {}:{}",
-                    packet.source_address().unwrap(),
-                    packet.source_port().unwrap(),
-                    packet.destination_address().unwrap(),
-                    packet.destination_port().unwrap()
+                    packet.source_address(),
+                    packet.source_port(),
+                    packet.destination_address(),
+                    packet.destination_port()
                 );
             }
             Err(error) => {
